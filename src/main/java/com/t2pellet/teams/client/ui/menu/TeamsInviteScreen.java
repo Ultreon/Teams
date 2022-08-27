@@ -33,7 +33,7 @@ public class TeamsInviteScreen extends TeamsInputScreen {
     protected void onSubmit(ButtonWidget widget) {
         PacketHandler.INSTANCE.sendToServer(new TeamInvitePacket(client.player.getUuid(), inputField.getText()));
         client.getToastManager().add(new ToastInviteSent(ClientTeam.INSTANCE.getName(), inputField.getText()));
-        client.setScreen(parent);
+        client.openScreen(parent);
     }
 
     @Override

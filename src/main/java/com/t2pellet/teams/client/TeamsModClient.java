@@ -32,7 +32,7 @@ public class TeamsModClient implements ClientModInitializer {
         }
         // Handle keybinds
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            for (var key : TeamsKeys.KEYS) {
+            for (TeamsKeys.TeamsKey key : TeamsKeys.KEYS) {
                 if (key.keyBinding.wasPressed()) {
                     key.onPress.execute(client);
                 }

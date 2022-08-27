@@ -11,6 +11,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 
+import java.util.Objects;
+
 @Environment(EnvType.CLIENT)
 public class CompassOverlay extends DrawableHelper {
 
@@ -44,9 +46,9 @@ public class CompassOverlay extends DrawableHelper {
         // Render heads
         boolean renderedAnyHead = false;
         float minScale = 1.0F;
-        for (var teammate : ClientTeam.INSTANCE.getTeammates()) {
-            if (client.player.getUuid().equals(teammate.id)) continue;
-            PlayerEntity player = client.world.getPlayerByUuid(teammate.id);
+        for (ClientTeam.Teammate teammate : ClientTeam.INSTANCE.getTeammates()) {
+            if (Objects.requireNonNull(client.player).getUuid().equals(teammate.id)) continue;
+            PlayerEntity player = Objects.requireNonNull(client.world).getPlayerByUuid(teammate.id);
             if (player != null) {
                 double rotationHead = caculateRotationHead();
                 float scaleFactor = calculateScaleFactor(player);
@@ -59,12 +61,12 @@ public class CompassOverlay extends DrawableHelper {
 
         // Render bar
         if (ClientTeam.INSTANCE.isInTeam() && !ClientTeam.INSTANCE.isTeamEmpty() && renderedAnyHead) {
-            RenderSystem.setShaderTexture(0, GUI_ICONS_TEXTURE);
-            var x = (client.getWindow().getScaledWidth() - HUD_WIDTH) / 2;
-            var y = 5 + HUD_HEIGHT / 2;
+            MinecraftClient.getInstance().getTextureManager().bindTexture(GUI_ICONS_TEXTURE);
+            int x = (client.getWindow().getScaledWidth() - HUD_WIDTH) / 2;
+            int y = 5 + HUD_HEIGHT / 2;
             float alpha = (1 - minScale) * (1 - MIN_ALPHA) + MIN_ALPHA;
             RenderSystem.enableBlend();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
+            RenderSystem.color4f(1.0F, 1.0F, 1.0F, alpha);
             drawTexture(matrices, x, y, 0, 74, HUD_WIDTH, HUD_HEIGHT);
             RenderSystem.disableBlend();
             isShowing = true;
@@ -74,7 +76,7 @@ public class CompassOverlay extends DrawableHelper {
     }
 
     private double caculateRotationHead() {
-        double rotationHead = client.player.getHeadYaw() % 360;
+        double rotationHead = Objects.requireNonNull(client.player).getHeadYaw() % 360;
         if (rotationHead > 180) {
             rotationHead = rotationHead - 360;
         } else if (rotationHead < -180) {
@@ -84,7 +86,7 @@ public class CompassOverlay extends DrawableHelper {
     }
 
     private float calculateScaleFactor(PlayerEntity player) {
-        double diffPosX = player.getPos().x - client.player.getPos().x;
+        double diffPosX = player.getPos().x - Objects.requireNonNull(client.player).getPos().x;
         double diffPosZ = player.getPos().z - client.player.getPos().z;
         double magnitude =  Math.sqrt(diffPosX * diffPosX + diffPosZ * diffPosZ);
 
@@ -98,7 +100,7 @@ public class CompassOverlay extends DrawableHelper {
     }
 
     private double calculateRenderFactor(PlayerEntity player, double rotationHead) {
-        double diffPosX = player.getPos().x - client.player.getPos().x;
+        double diffPosX = player.getPos().x - Objects.requireNonNull(client.player).getPos().x;
         double diffPosZ = player.getPos().z - client.player.getPos().z;
         double magnitude = Math.sqrt(diffPosX * diffPosX + diffPosZ * diffPosZ);
         diffPosX /= magnitude;
@@ -118,7 +120,7 @@ public class CompassOverlay extends DrawableHelper {
     }
 
     private void renderHUDHead(MatrixStack matrices, Identifier skin, float scaleFactor, double renderFactor) {
-        RenderSystem.setShaderTexture(0, skin);
+        MinecraftClient.getInstance().getTextureManager().bindTexture(skin);
         int scaledWidth = client.getWindow().getScaledWidth();
         int x = (int) (scaledWidth / 2 - HUD_WIDTH / 4 + renderFactor * HUD_WIDTH / 2 + 41);
         int y = 5 + HUD_HEIGHT + 4;
@@ -126,10 +128,10 @@ public class CompassOverlay extends DrawableHelper {
         float alphaFactor = (1 - scaleFactor) * (1 - MIN_ALPHA) + MIN_ALPHA;
         matrices.push();
         RenderSystem.enableBlend();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alphaFactor);
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, alphaFactor);
         matrices.scale(sizeFactor, sizeFactor, sizeFactor);
         if (1 - Math.abs(renderFactor) < Math.min(alphaFactor, 0.6f)) {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, (float) (1 - Math.abs(renderFactor)));
+            RenderSystem.color4f(1.0F, 1.0F, 1.0F, (float) (1 - Math.abs(renderFactor)));
             drawTexture(matrices, Math.round(x / sizeFactor), Math.round(y / sizeFactor), 32, 32, 32, 32);
         } else {
             drawTexture(matrices, Math.round(x / sizeFactor), Math.round(y / sizeFactor), 32, 32, 32, 32);

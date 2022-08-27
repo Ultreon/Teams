@@ -1,5 +1,6 @@
 package com.t2pellet.teams.client.core;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,11 +18,11 @@ public class ClientTeamDB {
     }
 
     public List<String> getTeams() {
-        return teams.stream().toList();
+        return new ArrayList<>(teams);
     }
 
     public List<String> getOnlineTeams() {
-        return onlineTeams.stream().toList();
+        return new ArrayList<>(onlineTeams);
     }
 
     public void addTeam(String team) {

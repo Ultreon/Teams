@@ -27,11 +27,11 @@ public abstract class TeamsInputScreen extends TeamsScreen {
     @Override
     protected void init() {
         super.init();
-        inputField = addDrawableChild(new TextFieldWidget(client.textRenderer, x + (getWidth() - 100) / 2, y + 10, 100, 20, DEFAULT_TEXT));
-        submitButton = addDrawableChild(new ButtonWidget(x + (getWidth() - 100) / 2, y + HEIGHT - 55, 100, 20, getSubmitText(), this::onSubmit));
+        inputField = addButton(new TextFieldWidget(client.textRenderer, x + (getWidth() - 100) / 2, y + 10, 100, 20, DEFAULT_TEXT));
+        submitButton = addButton(new ButtonWidget(x + (getWidth() - 100) / 2, y + HEIGHT - 55, 100, 20, getSubmitText(), this::onSubmit));
         submitButton.active = submitCondition();
-        addDrawableChild(new ButtonWidget(x + (getWidth() - 100) / 2, y + HEIGHT - 30, 100, 20, GO_BACK_TEXT, button -> {
-            client.setScreen(parent);
+        addButton(new ButtonWidget(x + (getWidth() - 100) / 2, y + HEIGHT - 30, 100, 20, GO_BACK_TEXT, button -> {
+            client.openScreen(parent);
         }));
     }
 

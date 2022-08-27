@@ -10,6 +10,8 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TeamsLonelyScreen extends TeamsScreen {
 
@@ -19,6 +21,8 @@ public class TeamsLonelyScreen extends TeamsScreen {
     private static final Text CREATE_TEXT = new TranslatableText("teams.menu.create");
     private static final Text LONELY_TEXT = new TranslatableText("teams.menu.lonely.alone");
     private static final Text GO_BACK_TEXT = new TranslatableText("teams.menu.return");
+
+    private final List<TeamEntry> entries = new ArrayList<>();
 
     public TeamsLonelyScreen(Screen parent) {
         super(parent, new TranslatableText("teams.menu.lonely.title"));
@@ -30,17 +34,18 @@ public class TeamsLonelyScreen extends TeamsScreen {
         // Team Entries
         int yPos = y + 12;
         for (String team : ClientTeamDB.INSTANCE.getOnlineTeams()) {
-            var entry = new TeamEntry(team, this.width / 2 - 122, yPos);
-            addDrawableChild(entry);
-            addSelectableChild(entry.joinButton);
+            TeamEntry entry = new TeamEntry(team, this.width / 2 - 122, yPos);
+            addChild(entry);
+            addButton(entry.joinButton);
             yPos += 24;
-        }
+            entries.add(entry);
+       }
         // Menu buttons
-        addDrawableChild(new ButtonWidget(this.width / 2 - 106, y + HEIGHT - 30, 100, 20, CREATE_TEXT, button -> {
-            client.setScreen(new TeamsCreateScreen(this));
+        addButton(new ButtonWidget(this.width / 2 - 106, y + HEIGHT - 30, 100, 20, CREATE_TEXT, button -> {
+            client.openScreen(new TeamsCreateScreen(this));
         }));
-        addDrawableChild(new ButtonWidget(this.width / 2 + 6, y + HEIGHT - 30, 100, 20, GO_BACK_TEXT, button -> {
-            client.setScreen(parent);
+        addButton(new ButtonWidget(this.width / 2 + 6, y + HEIGHT - 30, 100, 20, GO_BACK_TEXT, button -> {
+            client.openScreen(parent);
         }));
     }
 
@@ -52,10 +57,13 @@ public class TeamsLonelyScreen extends TeamsScreen {
             int textHeight   = textRenderer.fontHeight;
             textRenderer.draw(matrices, LONELY_TEXT, (int) ((this.width - textWidth) / 2), y + 24 - (int) (textHeight / 2), Color.BLACK.getRGB());
         }
+        for (TeamEntry entry : entries) {
+            entry.render(matrices, mouseX, mouseY, delta);
+        }
     }
 
     public void refresh() {
-        client.setScreen(new TeamsLonelyScreen(parent));
+        client.openScreen(new TeamsLonelyScreen(parent));
     }
 
     @Override

@@ -1,26 +1,24 @@
 package com.t2pellet.teams.network;
 
 import com.t2pellet.teams.TeamsMod;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 
 public abstract class Packet {
 
-    protected NbtCompound tag;
+    protected CompoundTag tag;
 
     Packet(PacketByteBuf byteBuf) {
-        this.tag = byteBuf.readNbt();
+        this.tag = byteBuf.readCompoundTag();
     }
 
     Packet() {
-        tag = new NbtCompound();
+        tag = new CompoundTag();
     }
 
     public void encode(PacketByteBuf byteBuf) {
-        byteBuf.writeNbt(tag);
+        byteBuf.writeCompoundTag(tag);
     }
 
     public abstract void execute();

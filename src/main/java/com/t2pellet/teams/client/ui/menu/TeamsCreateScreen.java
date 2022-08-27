@@ -1,6 +1,5 @@
 package com.t2pellet.teams.client.ui.menu;
 
-import com.t2pellet.teams.client.core.ClientTeam;
 import com.t2pellet.teams.client.core.ClientTeamDB;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamCreatePacket;
@@ -25,7 +24,7 @@ public class TeamsCreateScreen extends TeamsInputScreen {
 
     @Override
     protected void onSubmit(ButtonWidget widget) {
-        client.setScreen(new TeamsMainScreen(null));
+        client.openScreen(new TeamsMainScreen(null));
         PacketHandler.INSTANCE.sendToServer(new TeamCreatePacket(inputField.getText(), client.player.getUuid()));
     }
 

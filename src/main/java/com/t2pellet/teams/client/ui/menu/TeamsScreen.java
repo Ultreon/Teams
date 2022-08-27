@@ -5,7 +5,6 @@ import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.core.ClientTeam;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -34,9 +33,9 @@ public abstract class TeamsScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         renderBackground(matrices);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, getBackgroundTexture());
+//        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        MinecraftClient.getInstance().getTextureManager().bindTexture(getBackgroundTexture());
         matrices.push();
         matrices.scale(getBackgroundScale(), getBackgroundScale(), getBackgroundScale());
         drawTexture(matrices, (int) (x / getBackgroundScale()), (int) (y / getBackgroundScale()), 0, 0, (int) (getWidth() / getBackgroundScale()), (int) (getHeight() / getBackgroundScale()));

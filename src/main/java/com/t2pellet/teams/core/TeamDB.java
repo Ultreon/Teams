@@ -4,9 +4,9 @@ import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamDataPacket;
 import com.t2pellet.teams.network.packets.toasts.TeamInvitedPacket;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import net.fabricmc.fabric.api.util.NbtType;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +34,7 @@ public class TeamDB {
             throw new Team.TeamException(new TranslatableText("teams.error.duplicateteam"));
         }
         teams.put(team.getName(), team);
-        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(new ServerPlayerEntity[]{});
         PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.ADD, team.name), players);
     }
 
@@ -47,7 +47,7 @@ public class TeamDB {
         if (creator != null) {
             team.addPlayer(creator);
         }
-        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(new ServerPlayerEntity[]{});
         PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.ONLINE, team.name), players);
         return team;
     }
@@ -56,7 +56,7 @@ public class TeamDB {
         teams.remove(team.getName());
         TeamsMod.getScoreboard().removeTeam(TeamsMod.getScoreboard().getTeam(team.getName()));
         team.clear();
-        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+        ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(new ServerPlayerEntity[]{});
         PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.REMOVE, team.name), players);
     }
 
@@ -101,22 +101,22 @@ public class TeamDB {
         }
     }
 
-    public void fromNBT(NbtCompound compound) {
+    public void fromNBT(CompoundTag compound) {
         teams.clear();
-        NbtList list = compound.getList(TEAMS_KEY, NbtElement.COMPOUND_TYPE);
-        for (var tag : list) {
+        ListTag list = compound.getList(TEAMS_KEY, NbtType.COMPOUND);
+        for (net.minecraft.nbt.Tag tag : list) {
             try {
-                addTeam(Team.fromNBT((NbtCompound) tag));
+                addTeam(Team.fromNBT((CompoundTag) tag));
             } catch (Team.TeamException ex) {
                 TeamsMod.LOGGER.error("Failed to load team from NBT" + ex.getMessage());
             }
         }
     }
 
-    public NbtCompound toNBT() {
-        NbtCompound compound = new NbtCompound();
-        NbtList list = new NbtList();
-        for (var team : teams.values()) {
+    public CompoundTag toNBT() {
+        CompoundTag compound = new CompoundTag();
+        ListTag list = new ListTag();
+        for (Team team : teams.values()) {
             list.add(team.toNBT());
         }
         compound.put(TEAMS_KEY, list);

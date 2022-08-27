@@ -9,7 +9,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.toast.Toast;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
@@ -46,7 +46,7 @@ public class TeamsKeys {
     }
 
     public static final TeamsKey ACCEPT = new TeamsKey("key.teams.accept", GLFW.GLFW_KEY_RIGHT_BRACKET, client -> {
-        var toastManager = client.getToastManager();
+        net.minecraft.client.toast.ToastManager toastManager = client.getToastManager();
         ToastInvited invited = toastManager.getToast(ToastInvited.class, Toast.TYPE);
         if (invited != null) {
             invited.respond();
@@ -61,7 +61,7 @@ public class TeamsKeys {
     });
 
     public static final TeamsKey REJECT = new TeamsKey("key.teams.reject", GLFW.GLFW_KEY_LEFT_BRACKET, client -> {
-        var toastManager = client.getToastManager();
+        net.minecraft.client.toast.ToastManager toastManager = client.getToastManager();
         ToastInvited toast = toastManager.getToast(ToastInvited.class, Toast.TYPE);
         if (toast != null) {
             toast.respond();

@@ -41,8 +41,12 @@ public class TeamUpdatePacket extends ClientPacket {
         boolean isLocal = tag.getBoolean(LOCAL_KEY);
 
         switch (action) {
-            case JOINED -> TeamsModClient.client.getToastManager().add(new ToastJoin(team, player, isLocal));
-            case LEFT -> TeamsModClient.client.getToastManager().add(new ToastLeave(team, player, isLocal));
+            case JOINED:
+                TeamsModClient.client.getToastManager().add(new ToastJoin(team, player, isLocal));
+                break;
+            case LEFT:
+                TeamsModClient.client.getToastManager().add(new ToastLeave(team, player, isLocal));
+                break;
         }
     }
 }

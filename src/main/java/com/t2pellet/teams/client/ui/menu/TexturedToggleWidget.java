@@ -3,8 +3,8 @@ package com.t2pellet.teams.client.ui.menu;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
@@ -49,8 +49,8 @@ public class TexturedToggleWidget extends ButtonWidget {
     }
 
     public void renderButton(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, this.texture);
+//        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        MinecraftClient.getInstance().getTextureManager().bindTexture(this.texture);
         int i = this.v;
         if (this.isHovered()) {
             i += this.hoveredVOffset;
@@ -63,7 +63,7 @@ public class TexturedToggleWidget extends ButtonWidget {
         RenderSystem.enableDepthTest();
         drawTexture(matrices, this.x, this.y, (float)j, (float)i, this.width, this.height, this.textureWidth, this.textureHeight);
         if (this.hovered) {
-            this.renderTooltip(matrices, mouseX, mouseY);
+            this.renderToolTip(matrices, mouseX, mouseY);
         }
     }
 

@@ -9,6 +9,8 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 
 public class TeamRequestPacket extends ServerPacket {
@@ -33,11 +35,12 @@ public class TeamRequestPacket extends ServerPacket {
             throw new IllegalArgumentException("Got request to join team " + name + ", but that team doesn't exist");
         } else {
             // Get first online player in list of seniority
-            var playerManager = TeamsMod.getServer().getPlayerManager();
+            net.minecraft.server.PlayerManager playerManager = TeamsMod.getServer().getPlayerManager();
             ServerPlayerEntity seniorPlayer = team.getPlayers()
                     .filter(p -> playerManager.getPlayer(p) != null)
                     .map(playerManager::getPlayer)
-                    .findFirst().orElseThrow();
+                    .filter(Objects::nonNull)
+                    .findFirst().orElseThrow(NoSuchElementException::new);
             PacketHandler.INSTANCE.sendTo(new TeamRequestedPacket(name, tag.getUuid(PLAYER_KEY)), seniorPlayer);
         }
     }

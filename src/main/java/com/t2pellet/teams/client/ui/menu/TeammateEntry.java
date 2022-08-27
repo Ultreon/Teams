@@ -11,17 +11,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
-import java.awt.*;
-
 @Environment(EnvType.CLIENT)
-public class TeammateEntry extends DrawableHelper implements Drawable, Element, Selectable {
+public class TeammateEntry extends DrawableHelper implements Drawable, Element {
 
     static final int WIDTH = 244;
     static final int HEIGHT = 24;
@@ -53,7 +48,7 @@ public class TeammateEntry extends DrawableHelper implements Drawable, Element, 
             });
         }
         if (ClientTeam.INSTANCE.hasPermissions()) {
-            this.kickButton = new TexturedButtonWidget(x + WIDTH - 24, y + 8, 8, 8, 16, 190, TEXTURE, button -> {
+            this.kickButton = new TexturedButtonWidget(x + WIDTH - 24, y + 8, 8, 8, 16, 190, 8, TEXTURE, button -> {
                 PacketHandler.INSTANCE.sendToServer(new TeamKickPacket(ClientTeam.INSTANCE.getName(), client.player.getUuid(), teammate.id));
                 ClientTeam.INSTANCE.removePlayer(teammate.id);
             });
@@ -62,17 +57,18 @@ public class TeammateEntry extends DrawableHelper implements Drawable, Element, 
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        RenderSystem.enableDepthTest();
         // Background
         renderBackground(matrices);
         // Head
         float scale = 0.5F;
         matrices.push();
         matrices.scale(scale, scale, scale);
-        RenderSystem.setShaderTexture(0, teammate.skin);
+        MinecraftClient.getInstance().getTextureManager().bindTexture(teammate.skin);
         drawTexture(matrices, (int) ((x + 4) / scale), (int) ((y + 4) / scale), 32, 32, 32, 32);
         matrices.pop();
         // Nameplate
-        client.textRenderer.draw(matrices, teammate.name, x + 24, y + 12 - (int) (client.textRenderer.fontHeight / 2), Color.BLACK.getRGB());
+        client.textRenderer.draw(matrices, teammate.name, x + 24, y + 12 - (int) (client.textRenderer.fontHeight / 2), 0xff000000);
         // Buttons
         if (favButton != null) {
             favButton.render(matrices, mouseX, mouseY, delta);
@@ -83,22 +79,18 @@ public class TeammateEntry extends DrawableHelper implements Drawable, Element, 
     }
 
     private void renderBackground(MatrixStack matrices) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, TEXTURE);
+//        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+//        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.disableBlend();
+        MinecraftClient.getInstance().getTextureManager().bindTexture(TEXTURE);
         drawTexture(matrices, x, y, 0, 166, WIDTH, HEIGHT);
+        RenderSystem.enableBlend();
     }
 
-
-    @Override
-    public SelectionType getType() {
-        return SelectionType.FOCUSED;
-    }
-
-    @Override
-    public void appendNarrations(NarrationMessageBuilder builder) {
-        // TODO : implement this
-    }
+//    @Override
+//    public SelectionType getType() {
+//        return SelectionType.FOCUSED;
+//    }
 
     public TexturedButtonWidget getKickButton() {
         return kickButton;

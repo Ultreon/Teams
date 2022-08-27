@@ -14,7 +14,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
@@ -56,7 +56,7 @@ public class TeamsMod implements ModInitializer {
 			// Load saved teams
 			try {
 				File saveFile = new File(server.getSavePath(WorldSavePath.ROOT).toFile(), "teams.dat");
-				NbtCompound element = NbtIo.read(saveFile);
+				CompoundTag element = NbtIo.read(saveFile);
 				if (element != null) {
 					TeamDB.INSTANCE.fromNBT(element);
 				}
@@ -68,7 +68,7 @@ public class TeamsMod implements ModInitializer {
 			// Save teams
 			try {
 				File saveFile = new File(server.getSavePath(WorldSavePath.ROOT).toFile(), "teams.dat");
-				NbtCompound element = TeamDB.INSTANCE.toNBT();
+				CompoundTag element = TeamDB.INSTANCE.toNBT();
 				NbtIo.write(element, saveFile);
 			} catch (IOException e) {
 				e.printStackTrace();

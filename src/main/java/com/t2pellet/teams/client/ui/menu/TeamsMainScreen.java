@@ -8,9 +8,14 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Environment(EnvType.CLIENT)
 public class TeamsMainScreen extends TeamsScreen {
@@ -21,6 +26,7 @@ public class TeamsMainScreen extends TeamsScreen {
     private static final Text INVITE_TEXT = new TranslatableText("teams.menu.invite");
     private static final Text LEAVE_TEXT = new TranslatableText("teams.menu.leave");
     private static final Text GO_BACK_TEXT = new TranslatableText("teams.menu.return");
+    private final List<TeammateEntry> entries = new ArrayList<>();
 
     public TeamsMainScreen(Screen parent) {
         super(parent, new TranslatableText("teams.menu.title"));
@@ -32,29 +38,39 @@ public class TeamsMainScreen extends TeamsScreen {
         int yPos = y + 12;
         int xPos = x + (WIDTH - TeammateEntry.WIDTH) / 2;
         // Add player buttons
-        for (var teammate : ClientTeam.INSTANCE.getTeammates()) {
-            boolean local = client.player.getUuid().equals(teammate.id);
-            var entry = new TeammateEntry(this, teammate, xPos, yPos, local);
-            addDrawableChild(entry);
+        for (ClientTeam.Teammate teammate : ClientTeam.INSTANCE.getTeammates()) {
+            boolean local = Objects.requireNonNull(client.player).getUuid().equals(teammate.id);
+            TeammateEntry entry = new TeammateEntry(this, teammate, xPos, yPos, local);
+            addChild(entry);
             if (entry.getFavButton() != null) {
-                addSelectableChild(entry.getFavButton());
+                addButton(entry.getFavButton());
             }
             if (entry.getKickButton() != null) {
-                addSelectableChild(entry.getKickButton());
+                addButton(entry.getKickButton());
             }
+            entries.add(entry);
             yPos += 24;
         }
         // Add menu buttons
-        addDrawableChild(new ButtonWidget(this.width / 2  - 125, y + HEIGHT - 30, 80, 20, LEAVE_TEXT, button -> {
-            PacketHandler.INSTANCE.sendToServer(new TeamLeavePacket(client.player.getUuid()));
-            client.setScreen(new TeamsLonelyScreen(parent));
+        addButton(new ButtonWidget(this.width / 2  - 125, y + HEIGHT - 30, 80, 20, LEAVE_TEXT, button -> {
+            PacketHandler.INSTANCE.sendToServer(new TeamLeavePacket(Objects.requireNonNull(client.player).getUuid()));
+            client.openScreen(new TeamsLonelyScreen(parent));
         }));
-        addDrawableChild(new ButtonWidget(this.width / 2  - 40, y + HEIGHT - 30, 80, 20, INVITE_TEXT, button -> {
-            client.setScreen(new TeamsInviteScreen(this));
+        addButton(new ButtonWidget(this.width / 2  - 40, y + HEIGHT - 30, 80, 20, INVITE_TEXT, button -> {
+            client.openScreen(new TeamsInviteScreen(this));
         }));
-        addDrawableChild(new ButtonWidget(this.width / 2  + 45, y + HEIGHT - 30, 80, 20, GO_BACK_TEXT, button -> {
-            client.setScreen(parent);
+        addButton(new ButtonWidget(this.width / 2  + 45, y + HEIGHT - 30, 80, 20, GO_BACK_TEXT, button -> {
+            client.openScreen(parent);
         }));
+    }
+
+    @Override
+    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+        super.render(matrices, mouseX, mouseY, delta);
+
+        for (TeammateEntry entry : entries) {
+            entry.render(matrices, mouseX, mouseY, delta);
+        }
     }
 
     @Override
@@ -79,9 +95,9 @@ public class TeamsMainScreen extends TeamsScreen {
 
     public void refresh() {
         if (!ClientTeam.INSTANCE.isInTeam()) {
-            client.setScreen(parent);
+            client.openScreen(parent);
         } else {
-            client.setScreen(new TeamsMainScreen(parent));
+            client.openScreen(new TeamsMainScreen(parent));
         }
     }
 

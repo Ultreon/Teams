@@ -32,14 +32,14 @@ public class TeamPlayerDataPacket extends ClientPacket {
     }
 
     public TeamPlayerDataPacket(ServerPlayerEntity player, Type type) {
-        var health = player.getHealth();
-        var hunger = player.getHungerManager().getFoodLevel();
+        float health = player.getHealth();
+        int hunger = player.getHungerManager().getFoodLevel();
         tag.putUuid(ID_KEY, player.getUuid());
         tag.putString(TYPE_KEY, type.toString());
         switch (type) {
-            case ADD -> {
+            case ADD:
                 tag.putString(NAME_KEY, player.getName().getString());
-                var properties = player.getGameProfile().getProperties();
+                com.mojang.authlib.properties.PropertyMap properties = player.getGameProfile().getProperties();
                 Property skin = null;
                 if (properties.containsKey("textures")) {
                     skin = properties.get("textures").iterator().next();
@@ -50,11 +50,11 @@ public class TeamPlayerDataPacket extends ClientPacket {
                         : "");
                 tag.putFloat(HEALTH_KEY, health);
                 tag.putInt(HUNGER_KEY, hunger);
-            }
-            case UPDATE -> {
+                break;
+            case UPDATE:
                 tag.putFloat(HEALTH_KEY, health);
                 tag.putInt(HUNGER_KEY, hunger);
-            }
+                break;
         }
     }
 
@@ -67,17 +67,15 @@ public class TeamPlayerDataPacket extends ClientPacket {
     public void execute() {
         UUID uuid = tag.getUuid(ID_KEY);
         switch (Type.valueOf(tag.getString(TYPE_KEY))) {
-            case ADD -> {
+            // Get skin data
+            // Force download
+            case ADD: {
                 if (ClientTeam.INSTANCE.hasPlayer(uuid)) return;
-
                 String name = tag.getString(NAME_KEY);
                 float health = tag.getFloat(HEALTH_KEY);
                 int hunger = tag.getInt(HUNGER_KEY);
-
-                // Get skin data
                 String skinVal = tag.getString(SKIN_KEY);
                 String skinSig = tag.getString(SKIN_SIG_KEY);
-                // Force download
                 if (!skinVal.isEmpty()) {
                     GameProfile dummy = new GameProfile(UUID.randomUUID(), "");
                     dummy.getProperties().put("textures", new Property("textures", skinVal, skinSig));
@@ -89,15 +87,16 @@ public class TeamPlayerDataPacket extends ClientPacket {
                 } else {
                     ClientTeam.INSTANCE.addPlayer(uuid, name, DefaultSkinHelper.getTexture(uuid), health, hunger);
                 }
+                break;
             }
-            case UPDATE -> {
+            case UPDATE:
                 float health = tag.getFloat(HEALTH_KEY);
                 int hunger = tag.getInt(HUNGER_KEY);
                 ClientTeam.INSTANCE.updatePlayer(uuid, health, hunger);
-            }
-            case REMOVE -> {
+                break;
+            case REMOVE:
                 ClientTeam.INSTANCE.removePlayer(uuid);
-            }
+                break;
         }
     }
 }

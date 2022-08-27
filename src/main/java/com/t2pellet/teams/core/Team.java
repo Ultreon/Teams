@@ -9,12 +9,13 @@ import com.t2pellet.teams.network.packets.TeamDataPacket;
 import com.t2pellet.teams.network.packets.TeamInitPacket;
 import com.t2pellet.teams.network.packets.TeamPlayerDataPacket;
 import com.t2pellet.teams.network.packets.toasts.TeamUpdatePacket;
+import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementProgress;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
@@ -44,7 +45,7 @@ public class Team extends AbstractTeam {
     }
 
     public UUID getOwner() {
-        return players.stream().findFirst().orElseThrow();
+        return players.stream().findFirst().orElseThrow(RuntimeException::new);
     }
 
     public boolean playerHasPermissions(ServerPlayerEntity player) {
@@ -79,7 +80,7 @@ public class Team extends AbstractTeam {
     }
 
     public void clear() {
-        var playersCopy = new ArrayList<>(players);
+        ArrayList<UUID> playersCopy = new ArrayList<>(players);
         playersCopy.forEach(this::removePlayer);
         advancements.clear();
     }
@@ -99,12 +100,12 @@ public class Team extends AbstractTeam {
         if (sendPackets) {
             PacketHandler.INSTANCE.sendTo(new TeamInitPacket(name, playerHasPermissions(player)), player);
             if (onlinePlayers.size() == 1) {
-                var players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+                ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(new ServerPlayerEntity[]{});
                 PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.ONLINE, name), players);
             }
-            var players = getOnlinePlayers().toArray(ServerPlayerEntity[]::new);
+            ServerPlayerEntity[] players = getOnlinePlayers().toArray(ServerPlayerEntity[]::new);
             PacketHandler.INSTANCE.sendTo(new TeamPlayerDataPacket(player, TeamPlayerDataPacket.Type.ADD), players);
-            for (var teammate : players) {
+            for (ServerPlayerEntity teammate : players) {
                 PacketHandler.INSTANCE.sendTo(new TeamPlayerDataPacket(teammate, TeamPlayerDataPacket.Type.ADD), player);
             }
         }
@@ -122,10 +123,10 @@ public class Team extends AbstractTeam {
         // Packets
         if (sendPackets) {
             if (isEmpty()) {
-                var players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(ServerPlayerEntity[]::new);
+                ServerPlayerEntity[] players = TeamsMod.getServer().getPlayerManager().getPlayerList().toArray(new ServerPlayerEntity[]{});
                 PacketHandler.INSTANCE.sendTo(new TeamDataPacket(TeamDataPacket.Type.OFFLINE, name), players);
             }
-            var players = getOnlinePlayers().toArray(ServerPlayerEntity[]::new);
+            ServerPlayerEntity[] players = getOnlinePlayers().toArray(ServerPlayerEntity[]::new);
             PacketHandler.INSTANCE.sendTo(new TeamPlayerDataPacket(player, TeamPlayerDataPacket.Type.REMOVE), players);
         }
     }
@@ -134,11 +135,11 @@ public class Team extends AbstractTeam {
         players.add(player);
         String playerName = getNameFromUUID(player);
         // Scoreboard
-        var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
+        net.minecraft.scoreboard.Team playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
         if (playerScoreboardTeam == null || !playerScoreboardTeam.isEqual(scoreboardTeam)) {
             TeamsMod.getScoreboard().addPlayerToTeam(playerName, scoreboardTeam);
         }
-        var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
+        ServerPlayerEntity playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
         if (playerEntity != null) {
             // Packets
             PacketHandler.INSTANCE.sendTo(new TeamUpdatePacket(name, playerName, TeamUpdatePacket.Action.JOINED, true), playerEntity);
@@ -158,12 +159,12 @@ public class Team extends AbstractTeam {
         players.remove(player);
         String playerName = getNameFromUUID(player);
         // Scoreboard
-        var playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
+        net.minecraft.scoreboard.Team playerScoreboardTeam = TeamsMod.getScoreboard().getPlayerTeam(playerName);
         if (playerScoreboardTeam != null && playerScoreboardTeam.isEqual(scoreboardTeam)) {
             TeamsMod.getScoreboard().removePlayerFromTeam(playerName, scoreboardTeam);
         }
         // Packets
-        var playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
+        ServerPlayerEntity playerEntity = TeamsMod.getServer().getPlayerManager().getPlayer(player);
         if (playerEntity != null) {
             playerOffline(playerEntity, true);
             PacketHandler.INSTANCE.sendTo(new TeamClearPacket(), playerEntity);
@@ -174,10 +175,10 @@ public class Team extends AbstractTeam {
     }
 
     private String getNameFromUUID(UUID id) {
-        return TeamsMod.getServer().getUserCache().getByUuid(id).map(GameProfile::getName).orElseThrow();
+        return Optional.ofNullable(TeamsMod.getServer().getUserCache().getByUuid(id)).map(GameProfile::getName).orElseThrow(RuntimeException::new);
     }
 
-    static Team fromNBT(NbtCompound compound) {
+    static Team fromNBT(CompoundTag compound) {
         Team team = new Team.Builder(compound.getString("name"))
                 .setColour(Formatting.byName(compound.getString("colour")))
                 .setCollisionRule(CollisionRule.getRule(compound.getString("collision")))
@@ -187,13 +188,13 @@ public class Team extends AbstractTeam {
                 .setShowFriendlyInvisibles(compound.getBoolean("showInvisible"))
                 .complete();
 
-        NbtList players = compound.getList("players", NbtElement.STRING_TYPE);
-        for (var elem : players) {
+        ListTag players = compound.getList("players", NbtType.STRING);
+        for (Tag elem : players) {
             team.addPlayer(UUID.fromString(elem.asString()));
         }
 
-        NbtList advancements = compound.getList("advancement", NbtElement.STRING_TYPE);
-        for (var adv : advancements) {
+        ListTag advancements = compound.getList("advancement", NbtType.STRING);
+        for (Tag adv : advancements) {
             Identifier id = Identifier.tryParse(adv.asString());
             team.addAdvancement(TeamsMod.getServer().getAdvancementLoader().get(id));
         }
@@ -201,8 +202,8 @@ public class Team extends AbstractTeam {
         return team;
     }
 
-    NbtCompound toNBT() {
-        NbtCompound compound = new NbtCompound();
+    CompoundTag toNBT() {
+        CompoundTag compound = new CompoundTag();
         compound.putString("name", name);
         compound.putString("colour", scoreboardTeam.getColor().getName());
         compound.putString("collision", scoreboardTeam.getCollisionRule().name);
@@ -211,15 +212,15 @@ public class Team extends AbstractTeam {
         compound.putBoolean("friendlyFire", scoreboardTeam.isFriendlyFireAllowed());
         compound.putBoolean("showInvisible", scoreboardTeam.shouldShowFriendlyInvisibles());
 
-        NbtList playerList = new NbtList();
-        for (var player : players) {
-            playerList.add(NbtString.of(player.toString()));
+        ListTag playerList = new ListTag();
+        for (UUID player : players) {
+            playerList.add(StringTag.of(player.toString()));
         }
         compound.put("players", playerList);
 
-        NbtList advList = new NbtList();
-        for (var advancement : advancements) {
-            advList.add(NbtString.of(advancement.getId().toString()));
+        ListTag advList = new ListTag();
+        for (Advancement advancement : advancements) {
+            advList.add(StringTag.of(advancement.getId().toString()));
         }
         compound.put("advancements", advList);
 
@@ -232,8 +233,8 @@ public class Team extends AbstractTeam {
     }
 
     @Override
-    public MutableText decorateName(Text name) {
-        return scoreboardTeam.decorateName(name);
+    public MutableText modifyText(Text name) {
+        return scoreboardTeam.modifyText(name);
     }
 
     @Override
@@ -297,7 +298,7 @@ public class Team extends AbstractTeam {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Team team && Objects.equals(team.getName(), this.name);
+        return obj instanceof Team && Objects.equals(((Team) obj).getName(), this.name);
     }
 
     @Override

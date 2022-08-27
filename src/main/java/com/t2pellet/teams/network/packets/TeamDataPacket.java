@@ -4,10 +4,11 @@ import com.t2pellet.teams.client.core.ClientTeamDB;
 import com.t2pellet.teams.network.ClientPacket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.PacketByteBuf;
 
 public class TeamDataPacket extends ClientPacket {
@@ -24,9 +25,9 @@ public class TeamDataPacket extends ClientPacket {
     }
 
     public TeamDataPacket(Type type, String... teams) {
-        NbtList nbtList = new NbtList();
-        for (var team : teams) {
-            nbtList.add(NbtString.of(team));
+        ListTag nbtList = new ListTag();
+        for (String team : teams) {
+            nbtList.add(StringTag.of(team));
         }
         tag.put(TEAM_KEY, nbtList);
         tag.putString(TYPE_KEY, type.name());
@@ -40,15 +41,25 @@ public class TeamDataPacket extends ClientPacket {
     @Environment(EnvType.CLIENT)
     public void execute() {
         Type type = Type.valueOf(tag.getString(TYPE_KEY));
-        NbtList nbtList = tag.getList(TEAM_KEY, NbtElement.STRING_TYPE);
-        for (var elem : nbtList) {
+        ListTag nbtList = tag.getList(TEAM_KEY, NbtType.STRING);
+        for (Tag elem : nbtList) {
             String team = elem.asString();
             switch (type) {
-                case ADD -> ClientTeamDB.INSTANCE.addTeam(team);
-                case REMOVE -> ClientTeamDB.INSTANCE.removeTeam(team);
-                case ONLINE -> ClientTeamDB.INSTANCE.teamOnline(team);
-                case OFFLINE -> ClientTeamDB.INSTANCE.teamOffline(team);
-                case CLEAR -> ClientTeamDB.INSTANCE.clear();
+                case ADD:
+                    ClientTeamDB.INSTANCE.addTeam(team);
+                    break;
+                case REMOVE:
+                    ClientTeamDB.INSTANCE.removeTeam(team);
+                    break;
+                case ONLINE:
+                    ClientTeamDB.INSTANCE.teamOnline(team);
+                    break;
+                case OFFLINE:
+                    ClientTeamDB.INSTANCE.teamOffline(team);
+                    break;
+                case CLEAR:
+                    ClientTeamDB.INSTANCE.clear();
+                    break;
             }
         }
     }

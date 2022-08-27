@@ -9,6 +9,9 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TeamInvitePacket extends ServerPacket {
@@ -28,10 +31,13 @@ public class TeamInvitePacket extends ServerPacket {
     @Override
     public void execute() {
         UUID from = tag.getUuid(FROM_KEY);
-        UUID to = TeamsMod.getServer().getUserCache().findByName(tag.getString(TO_KEY)).orElseThrow().getId();
+        UUID to = Optional.ofNullable(TeamsMod.getServer().getUserCache().findByName(tag.getString(TO_KEY))).orElseThrow(NoSuchElementException::new).getId();
 
         ServerPlayerEntity fromPlayer = TeamsMod.getServer().getPlayerManager().getPlayer(from);
         ServerPlayerEntity toPlayer = TeamsMod.getServer().getPlayerManager().getPlayer(to);
+
+        Objects.requireNonNull(fromPlayer, "Origin player doesn't exists.");
+        Objects.requireNonNull(toPlayer, "Destination player doesn't exists.");
 
         Team team = ((IHasTeam) fromPlayer).getTeam();
         if (team == null) {

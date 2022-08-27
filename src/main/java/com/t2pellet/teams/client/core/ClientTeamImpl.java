@@ -11,6 +11,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 class ClientTeamImpl implements ClientTeam {
@@ -52,12 +53,12 @@ class ClientTeamImpl implements ClientTeam {
 
     @Override
     public boolean isTeamEmpty() {
-        return teammates.size() == 0 || (teammates.size() == 1 && teammates.get(TeamsModClient.client.player.getUuid()) != null);
+        return teammates.size() == 0 || (teammates.size() == 1 && teammates.get(Objects.requireNonNull(TeamsModClient.client.player).getUuid()) != null);
     }
 
     @Override
     public List<Teammate> getTeammates() {
-        return teammates.values().stream().toList();
+        return new ArrayList<>(teammates.values());
     }
 
     public boolean hasPlayer(UUID player) {
@@ -68,17 +69,18 @@ class ClientTeamImpl implements ClientTeam {
     public void addPlayer(UUID player, String name, Identifier skin, float health, int hunger) {
         teammates.put(player, new Teammate(player, name, skin, health, hunger));
         // Refresh TeamsMainScreen if open
-        if (client.currentScreen instanceof TeamsMainScreen screen) {
+        if (client.currentScreen instanceof TeamsMainScreen) {
+            TeamsMainScreen screen = (TeamsMainScreen) client.currentScreen;
             screen.refresh();
         } // Close TeamsScreens if we join a team
-        else if (player.equals(client.player.getUuid()) && client.currentScreen instanceof TeamsScreen) {
-            client.setScreen(null);
+        else if (player.equals(Objects.requireNonNull(client.player).getUuid()) && client.currentScreen instanceof TeamsScreen) {
+            client.openScreen(null);
         }
     }
 
     @Override
     public void updatePlayer(UUID player, float health, int hunger) {
-        var teammate = teammates.get(player);
+        Teammate teammate = teammates.get(player);
         if (teammate != null) {
             teammate.health = health;
             teammate.hunger = hunger;
@@ -91,13 +93,15 @@ class ClientTeamImpl implements ClientTeam {
     public void removePlayer(UUID player) {
         teammates.remove(player);
         // Refresh TeamsMainScreen if open, or close it if we were kicked
-        if (client.currentScreen instanceof TeamsMainScreen screen) {
-            if (teammates.isEmpty() || player.equals(client.player.getUuid())) {
-                client.setScreen(screen.parent);
+        if (client.currentScreen instanceof TeamsMainScreen) {
+            TeamsMainScreen screen = (TeamsMainScreen) client.currentScreen;
+            if (teammates.isEmpty() || player.equals(Objects.requireNonNull(client.player).getUuid())) {
+                client.openScreen(screen.parent);
             } else {
                 screen.refresh();
             }
-        } else if (client.currentScreen instanceof TeamsLonelyScreen screen) {
+        } else if (client.currentScreen instanceof TeamsLonelyScreen) {
+            TeamsLonelyScreen screen = (TeamsLonelyScreen) client.currentScreen;
             screen.refresh();
         }
     }
@@ -107,7 +111,7 @@ class ClientTeamImpl implements ClientTeam {
         return favourites.stream()
                 .filter(teammates::containsKey)
                 .map(teammates::get)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -133,7 +137,7 @@ class ClientTeamImpl implements ClientTeam {
         initialized = false;
         // If in TeamsScreen, go to lonely screen
         if (client.currentScreen instanceof TeamsScreen) {
-            client.setScreen(new TeamsLonelyScreen(null));
+            client.openScreen(new TeamsLonelyScreen(null));
         }
     }
 
