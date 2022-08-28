@@ -1,16 +1,16 @@
 package com.t2pellet.teams.mixin;
 
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.PlayerAdvancementTracker;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.PlayerAdvancements;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.Set;
 
-@Mixin(PlayerAdvancementTracker.class)
+@Mixin(PlayerAdvancements.class)
 public interface AdvancementAccessor {
 
-    @Accessor("visibleAdvancements")
+    @Accessor("visible")
     Set<Advancement> getVisibleAdvancements();
 
 }

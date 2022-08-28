@@ -1,13 +1,13 @@
 package com.t2pellet.teams.client.core;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 import java.util.UUID;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public interface ClientTeam {
 
     ClientTeam INSTANCE = new ClientTeamImpl();
@@ -26,7 +26,7 @@ public interface ClientTeam {
 
     boolean hasPlayer(UUID player);
 
-    void addPlayer(UUID player, String name, Identifier skin, float health, int hunger);
+    void addPlayer(UUID player, String name, ResourceLocation skin, float health, int hunger);
 
     void updatePlayer(UUID player, float health, int hunger);
 
@@ -45,11 +45,11 @@ public interface ClientTeam {
     class Teammate {
         public final UUID id;
         public final String name;
-        public final Identifier skin;
+        public final ResourceLocation skin;
         float health;
         int hunger;
 
-        Teammate(UUID id, String name, Identifier skin, float health, int hunger) {
+        Teammate(UUID id, String name, ResourceLocation skin, float health, int hunger) {
             this.id = id;
             this.name = name;
             this.skin = skin;

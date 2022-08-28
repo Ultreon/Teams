@@ -1,23 +1,24 @@
 package com.t2pellet.teams.client.ui.menu;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.core.ClientTeam;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class TeamsScreen extends Screen {
 
     public final Screen parent;
-    protected final MinecraftClient client;
+    protected final Minecraft client;
     protected int x;
     protected int y;
     protected boolean inTeam;
 
-    public TeamsScreen(Screen parent, Text title) {
+    public TeamsScreen(Screen parent, ITextComponent title) {
         super(title);
         client = TeamsModClient.client;
         this.parent = parent;
@@ -31,15 +32,15 @@ public abstract class TeamsScreen extends Screen {
     }
 
     @Override
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(@NotNull MatrixStack matrices, int mouseX, int mouseY, float delta) {
         renderBackground(matrices);
 //        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        MinecraftClient.getInstance().getTextureManager().bindTexture(getBackgroundTexture());
-        matrices.push();
+        Minecraft.getInstance().getTextureManager().bind(getBackgroundTexture());
+        matrices.pushPose();
         matrices.scale(getBackgroundScale(), getBackgroundScale(), getBackgroundScale());
-        drawTexture(matrices, (int) (x / getBackgroundScale()), (int) (y / getBackgroundScale()), 0, 0, (int) (getWidth() / getBackgroundScale()), (int) (getHeight() / getBackgroundScale()));
-        matrices.pop();
+        blit(matrices, (int) (x / getBackgroundScale()), (int) (y / getBackgroundScale()), 0, 0, (int) (getWidth() / getBackgroundScale()), (int) (getHeight() / getBackgroundScale()));
+        matrices.popPose();
         super.render(matrices, mouseX, mouseY, delta);
     }
 
@@ -47,7 +48,7 @@ public abstract class TeamsScreen extends Screen {
 
     protected abstract int getHeight();
 
-    protected abstract Identifier getBackgroundTexture();
+    protected abstract ResourceLocation getBackgroundTexture();
 
     protected abstract float getBackgroundScale();
 

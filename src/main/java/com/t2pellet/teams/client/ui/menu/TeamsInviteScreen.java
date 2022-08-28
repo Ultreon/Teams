@@ -5,14 +5,14 @@ import com.t2pellet.teams.client.ui.toast.ToastInviteSent;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamInvitePacket;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public class TeamsInviteScreen extends TeamsInputScreen {
 
-    private static final Text TITLE_TEXT = new TranslatableText("teams.menu.invite.title");
-    private static final Text INVITE_TEXT = new TranslatableText("teams.menu.invite.text");
+    private static final ITextComponent TITLE_TEXT = new TranslationTextComponent("teams.menu.invite.title");
+    private static final ITextComponent INVITE_TEXT = new TranslationTextComponent("teams.menu.invite.text");
 
 
     public TeamsInviteScreen(Screen parent) {
@@ -25,22 +25,22 @@ public class TeamsInviteScreen extends TeamsInputScreen {
     }
 
     @Override
-    protected Text getSubmitText() {
+    protected ITextComponent getSubmitText() {
         return INVITE_TEXT;
     }
 
     @Override
-    protected void onSubmit(ButtonWidget widget) {
-        PacketHandler.INSTANCE.sendToServer(new TeamInvitePacket(client.player.getUuid(), inputField.getText()));
-        client.getToastManager().add(new ToastInviteSent(ClientTeam.INSTANCE.getName(), inputField.getText()));
-        client.openScreen(parent);
+    protected void onSubmit(Button widget) {
+        PacketHandler.INSTANCE.sendToServer(new TeamInvitePacket(client.player.getUUID(), inputField.getValue()));
+        client.getToasts().addToast(new ToastInviteSent(ClientTeam.INSTANCE.getName(), inputField.getValue()));
+        client.setScreen(parent);
     }
 
     @Override
     protected boolean submitCondition() {
         String clientName = client.player.getName().getString();
-        return client.getNetworkHandler().getPlayerList()
+        return client.getConnection().getOnlinePlayers()
                 .stream()
-                .anyMatch(entry -> !entry.getProfile().getName().equals(clientName) && entry.getProfile().getName().equals(inputField.getText()));
+                .anyMatch(entry -> !entry.getProfile().getName().equals(clientName) && entry.getProfile().getName().equals(inputField.getValue()));
     }
 }

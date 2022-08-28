@@ -1,6 +1,6 @@
 package com.t2pellet.teams.client.ui.toast;
 
-import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.resources.I18n;
 
 public class ToastLeave extends TeamToast {
 
@@ -15,11 +15,11 @@ public class ToastLeave extends TeamToast {
 
     @Override
     public String title() {
-        return local ? I18n.translate("teams.toast.leave") : I18n.translate("teams.toast.left");
+        return local ? I18n.get("teams.toast.leave") : I18n.get("teams.toast.left");
     }
 
     @Override
     public String subTitle() {
-        return local ? I18n.translate("teams.toast.leave.details", team) : I18n.translate("teams.toast.left.details", name);
+        return local ? I18n.get("teams.toast.leave.details", team) : I18n.get("teams.toast.left.details", name);
     }
 }

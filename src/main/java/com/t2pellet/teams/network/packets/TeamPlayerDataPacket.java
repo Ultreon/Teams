@@ -6,14 +6,16 @@ import com.mojang.authlib.properties.Property;
 import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.core.ClientTeam;
 import com.t2pellet.teams.network.ClientPacket;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.DefaultSkinHelper;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class TeamPlayerDataPacket extends ClientPacket {
 
@@ -33,8 +35,8 @@ public class TeamPlayerDataPacket extends ClientPacket {
 
     public TeamPlayerDataPacket(ServerPlayerEntity player, Type type) {
         float health = player.getHealth();
-        int hunger = player.getHungerManager().getFoodLevel();
-        tag.putUuid(ID_KEY, player.getUuid());
+        int hunger = player.getFoodData().getFoodLevel();
+        tag.putUUID(ID_KEY, player.getUUID());
         tag.putString(TYPE_KEY, type.toString());
         switch (type) {
             case ADD:
@@ -58,14 +60,14 @@ public class TeamPlayerDataPacket extends ClientPacket {
         }
     }
 
-    public TeamPlayerDataPacket(MinecraftClient client, PacketByteBuf byteBuf) {
+    public TeamPlayerDataPacket(Minecraft client, PacketBuffer byteBuf) {
         super(client, byteBuf);
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public void execute() {
-        UUID uuid = tag.getUuid(ID_KEY);
+    @OnlyIn(Dist.CLIENT)
+    public void execute(Supplier<NetworkEvent.Context> context) {
+        UUID uuid = tag.getUUID(ID_KEY);
         switch (Type.valueOf(tag.getString(TYPE_KEY))) {
             // Get skin data
             // Force download
@@ -79,13 +81,13 @@ public class TeamPlayerDataPacket extends ClientPacket {
                 if (!skinVal.isEmpty()) {
                     GameProfile dummy = new GameProfile(UUID.randomUUID(), "");
                     dummy.getProperties().put("textures", new Property("textures", skinVal, skinSig));
-                    TeamsModClient.client.getSkinProvider().loadSkin(dummy, (type, id, texture) -> {
+                    TeamsModClient.client.getSkinManager().registerSkins(dummy, (type, id, texture) -> {
                         if (type == MinecraftProfileTexture.Type.SKIN) {
                             ClientTeam.INSTANCE.addPlayer(uuid, name, id, health, hunger);
                         }
                     }, false);
                 } else {
-                    ClientTeam.INSTANCE.addPlayer(uuid, name, DefaultSkinHelper.getTexture(uuid), health, hunger);
+                    ClientTeam.INSTANCE.addPlayer(uuid, name, DefaultPlayerSkin.getDefaultSkin(uuid), health, hunger);
                 }
                 break;
             }

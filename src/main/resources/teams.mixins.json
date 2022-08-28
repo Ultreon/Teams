@@ -1,16 +1,17 @@
 {
   "required": true,
+  "refmap": "teams.refmap.json",
   "minVersion": "0.8",
   "package": "com.t2pellet.teams.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "PlayerMixin",
+    "AdvancementAccessor",
     "AdvancementMixin",
-    "AdvancementAccessor"
+    "PlayerMixin"
   ],
   "client": [
-    "InventoryMixin",
     "InventoryAccessor",
+    "InventoryMixin",
     "TabHudMixin"
   ],
   "injectors": {

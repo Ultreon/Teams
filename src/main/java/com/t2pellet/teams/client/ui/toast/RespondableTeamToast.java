@@ -1,9 +1,10 @@
 package com.t2pellet.teams.client.ui.toast;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.t2pellet.teams.client.TeamsKeys;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.client.toast.ToastManager;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.toasts.ToastGui;
+import net.minecraft.client.resources.I18n;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class RespondableTeamToast extends TeamToast {
 
@@ -21,14 +22,15 @@ public abstract class RespondableTeamToast extends TeamToast {
     public String subTitle() {
         String rejectKey = TeamsKeys.REJECT.getLocalizedName();
         String acceptKey = TeamsKeys.ACCEPT.getLocalizedName();
-        return I18n.translate("teams.toast.respond", rejectKey, acceptKey);
+        return I18n.get("teams.toast.respond", rejectKey, acceptKey);
     }
 
+    @NotNull
     @Override
-    public Visibility draw(MatrixStack matrices, ToastManager manager, long startTime) {
+    public Visibility render(@NotNull MatrixStack matrices, @NotNull ToastGui manager, long startTime) {
         if (responded) {
             return Visibility.HIDE;
         }
-        return super.draw(matrices, manager, startTime);
+        return super.render(matrices, manager, startTime);
     }
 }

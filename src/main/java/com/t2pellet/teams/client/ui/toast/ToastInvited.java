@@ -1,10 +1,10 @@
 package com.t2pellet.teams.client.ui.toast;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.resources.I18n;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class ToastInvited extends RespondableTeamToast {
 
     public ToastInvited(String team) {
@@ -13,7 +13,7 @@ public class ToastInvited extends RespondableTeamToast {
 
     @Override
     public String title() {
-        return I18n.translate("teams.toast.invite", team);
+        return I18n.get("teams.toast.invite", team);
     }
 
 }

@@ -1,13 +1,12 @@
 package com.t2pellet.teams.network;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.PacketBuffer;
 
 public abstract class ClientPacket extends Packet {
 
-    public ClientPacket(MinecraftClient client, PacketByteBuf byteBuf) {
+    public ClientPacket(Minecraft client, PacketBuffer byteBuf) {
         super(byteBuf);
-        client.execute(this::execute);
     }
 
     protected ClientPacket() {

@@ -4,10 +4,13 @@ import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.ui.toast.ToastInvited;
 import com.t2pellet.teams.core.Team;
 import com.t2pellet.teams.network.ClientPacket;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public class TeamInvitedPacket extends ClientPacket {
 
@@ -17,14 +20,14 @@ public class TeamInvitedPacket extends ClientPacket {
         tag.putString(TEAM_KEY, team.getName());
     }
 
-    public TeamInvitedPacket(MinecraftClient client, PacketByteBuf byteBuf) {
+    public TeamInvitedPacket(Minecraft client, PacketBuffer byteBuf) {
         super(client, byteBuf);
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public void execute() {
+    @OnlyIn(Dist.CLIENT)
+    public void execute(Supplier<NetworkEvent.Context> context) {
         String team = tag.getString(TEAM_KEY);
-        TeamsModClient.client.getToastManager().add(new ToastInvited(team));
+        TeamsModClient.client.getToasts().addToast(new ToastInvited(team));
     }
 }

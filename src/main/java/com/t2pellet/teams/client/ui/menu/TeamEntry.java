@@ -1,39 +1,39 @@
 package com.t2pellet.teams.client.ui.menu;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.client.ui.toast.ToastRequest;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamRequestPacket;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.client.gui.IRenderable;
+import net.minecraft.client.gui.widget.button.ImageButton;
+import net.minecraft.util.ResourceLocation;
 
-public class TeamEntry extends DrawableHelper implements Drawable, Element {
+public class TeamEntry extends AbstractGui implements IRenderable, IGuiEventListener {
 
     static final int WIDTH = 244;
     static final int HEIGHT = 24;
-    private static final Identifier TEXTURE = new Identifier(TeamsMod.MODID, "textures/gui/screen_background.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(TeamsMod.MODID, "textures/gui/screen_background.png");
 
-    public final TexturedButtonWidget joinButton;
-    private MinecraftClient client;
+    public final ImageButton joinButton;
+    private Minecraft client;
     private String team;
     private int x;
     private int y;
 
     public TeamEntry(String team, int x, int y) {
-        this.client = MinecraftClient.getInstance();
+        this.client = Minecraft.getInstance();
         this.team = team;
         this.x = x;
         this.y = y;
-        this.joinButton = new TexturedButtonWidget(x + WIDTH - 24, y + 8, 8, 8, 24, 190, 8, TEXTURE, button -> {
-            PacketHandler.INSTANCE.sendToServer(new TeamRequestPacket(team, client.player.getUuid()));
-            client.getToastManager().add(new ToastRequest(team));
-            client.openScreen(null);
+        this.joinButton = new ImageButton(x + WIDTH - 24, y + 8, 8, 8, 24, 190, 8, TEXTURE, button -> {
+            PacketHandler.INSTANCE.sendToServer(new TeamRequestPacket(team, client.player.getUUID()));
+            client.getToasts().addToast(new ToastRequest(team));
+            client.setScreen(null);
         });
     }
 
@@ -43,7 +43,7 @@ public class TeamEntry extends DrawableHelper implements Drawable, Element {
         // Background
         renderBackground(matrices);
         // Name
-        client.textRenderer.draw(matrices, team, x + 8, y + 12 - (int) (client.textRenderer.fontHeight / 2), 0xff000000);
+        client.font.draw(matrices, team, x + 8, y + 12 - (int) (client.font.lineHeight / 2), 0xff000000);
         // Buttons
         joinButton.render(matrices, mouseX, mouseY, delta);
     }
@@ -52,7 +52,7 @@ public class TeamEntry extends DrawableHelper implements Drawable, Element {
 //        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.enableTexture();
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        MinecraftClient.getInstance().getTextureManager().bindTexture(TEXTURE);
-        drawTexture(matrices, x, y, 0, 166, WIDTH, HEIGHT);
+        Minecraft.getInstance().getTextureManager().bind(TEXTURE);
+        blit(matrices, x, y, 0, 166, WIDTH, HEIGHT);
     }
 }

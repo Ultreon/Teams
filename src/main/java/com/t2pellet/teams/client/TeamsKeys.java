@@ -5,28 +5,29 @@ import com.t2pellet.teams.client.ui.toast.ToastInvited;
 import com.t2pellet.teams.client.ui.toast.ToastRequested;
 import com.t2pellet.teams.network.PacketHandler;
 import com.t2pellet.teams.network.packets.TeamJoinPacket;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.KeyBinding;
-import net.minecraft.client.toast.Toast;
-import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.toasts.IToast;
+import net.minecraft.client.gui.toasts.ToastGui;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.InputMappings;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import org.lwjgl.glfw.GLFW;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class TeamsKeys {
 
     public static class TeamsKey {
         @FunctionalInterface
         public interface OnPress {
-            void execute(MinecraftClient client);
+            void execute(Minecraft client);
         }
 
         private TeamsKey(String keyName, int keyBind, OnPress action) {
             keyBinding = new KeyBinding(
                     keyName,
-                    InputUtil.Type.KEYSYM,
+                    InputMappings.Type.KEYSYM,
                     keyBind,
                     "key.category.teams"
             );
@@ -34,11 +35,11 @@ public class TeamsKeys {
         }
 
         public void register() {
-            KeyBindingHelper.registerKeyBinding(keyBinding);
+            ClientRegistry.registerKeyBinding(keyBinding);
         }
 
         public String getLocalizedName() {
-            return keyBinding.getBoundKeyLocalizedText().asString();
+            return keyBinding.getTranslatedKeyMessage().getString();
         }
 
         final KeyBinding keyBinding;
@@ -46,13 +47,13 @@ public class TeamsKeys {
     }
 
     public static final TeamsKey ACCEPT = new TeamsKey("key.teams.accept", GLFW.GLFW_KEY_RIGHT_BRACKET, client -> {
-        net.minecraft.client.toast.ToastManager toastManager = client.getToastManager();
-        ToastInvited invited = toastManager.getToast(ToastInvited.class, Toast.TYPE);
+        ToastGui toastManager = client.getToasts();
+        ToastInvited invited = toastManager.getToast(ToastInvited.class, IToast.NO_TOKEN);
         if (invited != null) {
             invited.respond();
-            PacketHandler.INSTANCE.sendToServer(new TeamJoinPacket(client.player.getUuid(), invited.team));
+            PacketHandler.INSTANCE.sendToServer(new TeamJoinPacket(client.player.getUUID(), invited.team));
         } else {
-            ToastRequested requested = toastManager.getToast(ToastRequested.class, Toast.TYPE);
+            ToastRequested requested = toastManager.getToast(ToastRequested.class, IToast.NO_TOKEN);
             if (requested != null) {
                 requested.respond();
                 PacketHandler.INSTANCE.sendToServer(new TeamJoinPacket(requested.id, ClientTeam.INSTANCE.getName()));
@@ -61,12 +62,12 @@ public class TeamsKeys {
     });
 
     public static final TeamsKey REJECT = new TeamsKey("key.teams.reject", GLFW.GLFW_KEY_LEFT_BRACKET, client -> {
-        net.minecraft.client.toast.ToastManager toastManager = client.getToastManager();
-        ToastInvited toast = toastManager.getToast(ToastInvited.class, Toast.TYPE);
+        ToastGui toastManager = client.getToasts();
+        ToastInvited toast = toastManager.getToast(ToastInvited.class, IToast.NO_TOKEN);
         if (toast != null) {
             toast.respond();
         } else {
-            ToastRequested requested = toastManager.getToast(ToastRequested.class, Toast.TYPE);
+            ToastRequested requested = toastManager.getToast(ToastRequested.class, IToast.NO_TOKEN);
             if (requested != null) {
                 requested.respond();
             }

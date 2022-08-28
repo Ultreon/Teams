@@ -4,12 +4,14 @@ import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.core.ClientTeam;
 import com.t2pellet.teams.client.ui.toast.ToastRequested;
 import com.t2pellet.teams.network.ClientPacket;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class TeamRequestedPacket extends ClientPacket {
 
@@ -18,18 +20,18 @@ public class TeamRequestedPacket extends ClientPacket {
 
     public TeamRequestedPacket(String name, UUID id) {
         tag.putString(NAME_KEY, name);
-        tag.putUuid(ID_KEY, id);
+        tag.putUUID(ID_KEY, id);
     }
 
-    public TeamRequestedPacket(MinecraftClient client, PacketByteBuf byteBuf) {
+    public TeamRequestedPacket(Minecraft client, PacketBuffer byteBuf) {
         super(client, byteBuf);
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public void execute() {
+    @OnlyIn(Dist.CLIENT)
+    public void execute(Supplier<NetworkEvent.Context> context) {
         String name = tag.getString(NAME_KEY);
-        UUID id = tag.getUuid(ID_KEY);
-        TeamsModClient.client.getToastManager().add(new ToastRequested(ClientTeam.INSTANCE.getName(), name, id));
+        UUID id = tag.getUUID(ID_KEY);
+        TeamsModClient.client.getToasts().addToast(new ToastRequested(ClientTeam.INSTANCE.getName(), name, id));
     }
 }

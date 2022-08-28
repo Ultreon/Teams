@@ -4,10 +4,13 @@ import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.ui.toast.ToastJoin;
 import com.t2pellet.teams.client.ui.toast.ToastLeave;
 import com.t2pellet.teams.network.ClientPacket;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public class TeamUpdatePacket extends ClientPacket {
 
@@ -28,13 +31,13 @@ public class TeamUpdatePacket extends ClientPacket {
         tag.putBoolean(LOCAL_KEY, isLocal);
     }
 
-    public TeamUpdatePacket(MinecraftClient client, PacketByteBuf byteBuf) {
+    public TeamUpdatePacket(Minecraft client, PacketBuffer byteBuf) {
         super(client, byteBuf);
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public void execute() {
+    @OnlyIn(Dist.CLIENT)
+    public void execute(Supplier<NetworkEvent.Context> context) {
         String team = tag.getString(TEAM_KEY);
         String player = tag.getString(PLAYER_KEY);
         Action action = Action.valueOf(tag.getString(ACTION_KEY));
@@ -42,10 +45,10 @@ public class TeamUpdatePacket extends ClientPacket {
 
         switch (action) {
             case JOINED:
-                TeamsModClient.client.getToastManager().add(new ToastJoin(team, player, isLocal));
+                TeamsModClient.client.getToasts().addToast(new ToastJoin(team, player, isLocal));
                 break;
             case LEFT:
-                TeamsModClient.client.getToastManager().add(new ToastLeave(team, player, isLocal));
+                TeamsModClient.client.getToasts().addToast(new ToastLeave(team, player, isLocal));
                 break;
         }
     }

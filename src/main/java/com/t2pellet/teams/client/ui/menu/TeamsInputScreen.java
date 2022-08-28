@@ -2,42 +2,42 @@ package com.t2pellet.teams.client.ui.menu;
 
 import com.t2pellet.teams.TeamsMod;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 public abstract class TeamsInputScreen extends TeamsScreen {
 
-    private static final Identifier TEXTURE = new Identifier(TeamsMod.MODID, "textures/gui/smaller_background.png");
-    private static final Text DEFAULT_TEXT = new TranslatableText("teams.menu.input");
-    private static final Text GO_BACK_TEXT = new TranslatableText("teams.menu.return");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(TeamsMod.MODID, "textures/gui/smaller_background.png");
+    private static final ITextComponent DEFAULT_TEXT = new TranslationTextComponent("teams.menu.input");
+    private static final ITextComponent GO_BACK_TEXT = new TranslationTextComponent("teams.menu.return");
     private static final int WIDTH = 120;
     private static final int HEIGHT = 110;
 
     protected TextFieldWidget inputField;
-    protected ButtonWidget submitButton;
+    protected Button submitButton;
     private String prevInputText = "";
 
-    public TeamsInputScreen(Screen parent, Text title) {
+    public TeamsInputScreen(Screen parent, ITextComponent title) {
         super(parent, title);
     }
 
     @Override
     protected void init() {
         super.init();
-        inputField = addButton(new TextFieldWidget(client.textRenderer, x + (getWidth() - 100) / 2, y + 10, 100, 20, DEFAULT_TEXT));
-        submitButton = addButton(new ButtonWidget(x + (getWidth() - 100) / 2, y + HEIGHT - 55, 100, 20, getSubmitText(), this::onSubmit));
+        inputField = addButton(new TextFieldWidget(client.font, x + (getWidth() - 100) / 2, y + 10, 100, 20, DEFAULT_TEXT));
+        submitButton = addButton(new Button(x + (getWidth() - 100) / 2, y + HEIGHT - 55, 100, 20, getSubmitText(), this::onSubmit));
         submitButton.active = submitCondition();
-        addButton(new ButtonWidget(x + (getWidth() - 100) / 2, y + HEIGHT - 30, 100, 20, GO_BACK_TEXT, button -> {
-            client.openScreen(parent);
+        addButton(new Button(x + (getWidth() - 100) / 2, y + HEIGHT - 30, 100, 20, GO_BACK_TEXT, button -> {
+            client.setScreen(parent);
         }));
     }
 
     @Override
     public void tick() {
-        if (!prevInputText.equals(inputField.getText())) {
+        if (!prevInputText.equals(inputField.getValue())) {
             submitButton.active = submitCondition();
         }
     }
@@ -53,7 +53,7 @@ public abstract class TeamsInputScreen extends TeamsScreen {
     }
 
     @Override
-    protected Identifier getBackgroundTexture() {
+    protected ResourceLocation getBackgroundTexture() {
         return TEXTURE;
     }
 
@@ -62,9 +62,9 @@ public abstract class TeamsInputScreen extends TeamsScreen {
         return 1.0F;
     }
 
-    protected abstract Text getSubmitText();
+    protected abstract ITextComponent getSubmitText();
 
-    protected abstract void onSubmit(ButtonWidget widget);
+    protected abstract void onSubmit(Button widget);
 
     protected abstract boolean submitCondition();
 

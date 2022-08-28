@@ -4,11 +4,13 @@ import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.core.Team;
 import com.t2pellet.teams.core.TeamDB;
 import com.t2pellet.teams.network.ServerPacket;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class TeamJoinPacket extends ServerPacket {
 
@@ -16,18 +18,18 @@ public class TeamJoinPacket extends ServerPacket {
     private static final String TEAM_KEY = "teamName";
 
     public TeamJoinPacket(UUID playerId, String team) {
-        tag.putUuid(ID_KEY, playerId);
+        tag.putUUID(ID_KEY, playerId);
         tag.putString(TEAM_KEY, team);
     }
 
-    public TeamJoinPacket(MinecraftServer server, PacketByteBuf byteBuf) {
+    public TeamJoinPacket(MinecraftServer server, PacketBuffer byteBuf) {
         super(server, byteBuf);
     }
 
     @Override
-    public void execute() {
-        UUID id = tag.getUuid(ID_KEY);
-        ServerPlayerEntity player = TeamsMod.getServer().getPlayerManager().getPlayer(id);
+    public void execute(Supplier<NetworkEvent.Context> context) {
+        UUID id = tag.getUUID(ID_KEY);
+        ServerPlayerEntity player = TeamsMod.getServer().getPlayerList().getPlayer(id);
         String teamName = tag.getString(TEAM_KEY);
         Team team = TeamDB.INSTANCE.getTeam(teamName);
         try {

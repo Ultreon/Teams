@@ -1,8 +1,8 @@
 package com.t2pellet.teams.network;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -14,6 +14,8 @@ public interface PacketHandler {
      * Register all packets in the given class
      */
     static void register(Class packetsClazz) {
+        ((PacketHandlerImpl)INSTANCE).initialize();
+
         for (Field declaredField : packetsClazz.getDeclaredFields()) {
             try {
                 Packet.PacketKey<?> id = (Packet.PacketKey<?>) declaredField.get(null);
@@ -32,7 +34,7 @@ public interface PacketHandler {
      * @param packetClass the packet class
      * @param <T> the packet type
      */
-    <T extends Packet> void registerPacket(Identifier id, Class<T> packetClass);
+    <T extends Packet> void registerPacket(ResourceLocation id, Class<T> packetClass);
 
     /* Sending */
 

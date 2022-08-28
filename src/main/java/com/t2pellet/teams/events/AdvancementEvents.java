@@ -1,22 +1,18 @@
 package com.t2pellet.teams.events;
 
-import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraftforge.eventbus.api.Event;
 
 public class AdvancementEvents {
+    public static class PlayerAdvancement extends Event {
+        public final ServerPlayerEntity player;
+        public final Advancement advancement;
 
-    public static final Event<PlayerAdvancement> ADVANCEMENT_GRANTED = EventFactory.createArrayBacked(PlayerAdvancement.class,
-            listeners -> (player, advancement) -> {
-                for (PlayerAdvancement listener : listeners) {
-                    listener.onPlayerAdvancement(player, advancement);
-                }
-            });
-
-    @FunctionalInterface
-    public interface PlayerAdvancement {
-        void onPlayerAdvancement(ServerPlayerEntity player, Advancement advancement);
+        public PlayerAdvancement(ServerPlayerEntity player, Advancement advancement) {
+            this.player = player;
+            this.advancement = advancement;
+        }
     }
 
 }

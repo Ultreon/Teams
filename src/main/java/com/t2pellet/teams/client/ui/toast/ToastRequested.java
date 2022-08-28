@@ -1,6 +1,6 @@
 package com.t2pellet.teams.client.ui.toast;
 
-import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.resources.I18n;
 
 import java.util.UUID;
 
@@ -17,6 +17,6 @@ public class ToastRequested extends RespondableTeamToast {
 
     @Override
     public String title() {
-        return I18n.translate("teams.toast.requested", name);
+        return I18n.get("teams.toast.requested", name);
     }
 }

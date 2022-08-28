@@ -1,6 +1,6 @@
 package com.t2pellet.teams.client.ui.toast;
 
-import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.resources.I18n;
 
 public class ToastRequest extends TeamToast {
 
@@ -10,11 +10,11 @@ public class ToastRequest extends TeamToast {
 
     @Override
     public String title() {
-        return I18n.translate("teams.toast.request");
+        return I18n.get("teams.toast.request");
     }
 
     @Override
     public String subTitle() {
-        return I18n.translate("teams.toast.request.details", team);
+        return I18n.get("teams.toast.request.details", team);
     }
 }

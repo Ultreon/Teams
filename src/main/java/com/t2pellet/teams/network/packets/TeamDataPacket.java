@@ -2,14 +2,17 @@ package com.t2pellet.teams.network.packets;
 
 import com.t2pellet.teams.client.core.ClientTeamDB;
 import com.t2pellet.teams.network.ClientPacket;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.util.NbtType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.StringNBT;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public class TeamDataPacket extends ClientPacket {
 
@@ -25,25 +28,25 @@ public class TeamDataPacket extends ClientPacket {
     }
 
     public TeamDataPacket(Type type, String... teams) {
-        ListTag nbtList = new ListTag();
+        ListNBT nbtList = new ListNBT();
         for (String team : teams) {
-            nbtList.add(StringTag.of(team));
+            nbtList.add(StringNBT.valueOf(team));
         }
         tag.put(TEAM_KEY, nbtList);
         tag.putString(TYPE_KEY, type.name());
     }
 
-    public TeamDataPacket(MinecraftClient client, PacketByteBuf byteBuf) {
+    public TeamDataPacket(Minecraft client, PacketBuffer byteBuf) {
         super(client, byteBuf);
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public void execute() {
+    @OnlyIn(Dist.CLIENT)
+    public void execute(Supplier<NetworkEvent.Context> context) {
         Type type = Type.valueOf(tag.getString(TYPE_KEY));
-        ListTag nbtList = tag.getList(TEAM_KEY, NbtType.STRING);
-        for (Tag elem : nbtList) {
-            String team = elem.asString();
+        ListNBT nbtList = tag.getList(TEAM_KEY, Constants.NBT.TAG_STRING);
+        for (INBT elem : nbtList) {
+            String team = elem.getAsString();
             switch (type) {
                 case ADD:
                     ClientTeamDB.INSTANCE.addTeam(team);

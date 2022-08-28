@@ -4,11 +4,13 @@ import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.core.Team;
 import com.t2pellet.teams.core.TeamDB;
 import com.t2pellet.teams.network.ServerPacket;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class TeamKickPacket extends ServerPacket {
 
@@ -18,20 +20,20 @@ public class TeamKickPacket extends ServerPacket {
 
     public TeamKickPacket(String team, UUID sender, UUID playerToKick) {
         tag.putString(TEAM_KEY, team);
-        tag.putUuid(SENDER_KEY, sender);
-        tag.putUuid(KICKED_KEY, playerToKick);
+        tag.putUUID(SENDER_KEY, sender);
+        tag.putUUID(KICKED_KEY, playerToKick);
     }
 
-    public TeamKickPacket(MinecraftServer server, PacketByteBuf byteBuf) {
+    public TeamKickPacket(MinecraftServer server, PacketBuffer byteBuf) {
         super(server, byteBuf);
     }
 
     @Override
-    public void execute() {
+    public void execute(Supplier<NetworkEvent.Context> context) {
         Team team = TeamDB.INSTANCE.getTeam(tag.getString(TEAM_KEY));
-        ServerPlayerEntity sender = TeamsMod.getServer().getPlayerManager().getPlayer(tag.getUuid(SENDER_KEY));
+        ServerPlayerEntity sender = TeamsMod.getServer().getPlayerList().getPlayer(tag.getUUID(SENDER_KEY));
         if (sender != null && team.playerHasPermissions(sender)) {
-            ServerPlayerEntity kicked = TeamsMod.getServer().getPlayerManager().getPlayer(tag.getUuid(KICKED_KEY));
+            ServerPlayerEntity kicked = TeamsMod.getServer().getPlayerList().getPlayer(tag.getUUID(KICKED_KEY));
             try {
                 TeamDB.INSTANCE.removePlayerFromTeam(kicked);
             } catch (Team.TeamException ex) {

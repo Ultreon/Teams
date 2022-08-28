@@ -5,18 +5,18 @@ import com.t2pellet.teams.client.TeamsModClient;
 import com.t2pellet.teams.client.ui.menu.TeamsLonelyScreen;
 import com.t2pellet.teams.client.ui.menu.TeamsMainScreen;
 import com.t2pellet.teams.client.ui.menu.TeamsScreen;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 class ClientTeamImpl implements ClientTeam {
 
-    private MinecraftClient client = MinecraftClient.getInstance();
+    private Minecraft client = Minecraft.getInstance();
     private Map<UUID, Teammate> teammates = new HashMap<>();
     private Set<UUID> favourites = new HashSet<>();
     private boolean initialized = false;
@@ -53,7 +53,7 @@ class ClientTeamImpl implements ClientTeam {
 
     @Override
     public boolean isTeamEmpty() {
-        return teammates.size() == 0 || (teammates.size() == 1 && teammates.get(Objects.requireNonNull(TeamsModClient.client.player).getUuid()) != null);
+        return teammates.size() == 0 || (teammates.size() == 1 && teammates.get(Objects.requireNonNull(TeamsModClient.client.player).getUUID()) != null);
     }
 
     @Override
@@ -66,15 +66,15 @@ class ClientTeamImpl implements ClientTeam {
     }
 
     @Override
-    public void addPlayer(UUID player, String name, Identifier skin, float health, int hunger) {
+    public void addPlayer(UUID player, String name, ResourceLocation skin, float health, int hunger) {
         teammates.put(player, new Teammate(player, name, skin, health, hunger));
         // Refresh TeamsMainScreen if open
-        if (client.currentScreen instanceof TeamsMainScreen) {
-            TeamsMainScreen screen = (TeamsMainScreen) client.currentScreen;
+        if (client.screen instanceof TeamsMainScreen) {
+            TeamsMainScreen screen = (TeamsMainScreen) client.screen;
             screen.refresh();
         } // Close TeamsScreens if we join a team
-        else if (player.equals(Objects.requireNonNull(client.player).getUuid()) && client.currentScreen instanceof TeamsScreen) {
-            client.openScreen(null);
+        else if (player.equals(Objects.requireNonNull(client.player).getUUID()) && client.screen instanceof TeamsScreen) {
+            client.setScreen(null);
         }
     }
 
@@ -93,15 +93,15 @@ class ClientTeamImpl implements ClientTeam {
     public void removePlayer(UUID player) {
         teammates.remove(player);
         // Refresh TeamsMainScreen if open, or close it if we were kicked
-        if (client.currentScreen instanceof TeamsMainScreen) {
-            TeamsMainScreen screen = (TeamsMainScreen) client.currentScreen;
-            if (teammates.isEmpty() || player.equals(Objects.requireNonNull(client.player).getUuid())) {
-                client.openScreen(screen.parent);
+        if (client.screen instanceof TeamsMainScreen) {
+            TeamsMainScreen screen = (TeamsMainScreen) client.screen;
+            if (teammates.isEmpty() || player.equals(Objects.requireNonNull(client.player).getUUID())) {
+                client.setScreen(screen.parent);
             } else {
                 screen.refresh();
             }
-        } else if (client.currentScreen instanceof TeamsLonelyScreen) {
-            TeamsLonelyScreen screen = (TeamsLonelyScreen) client.currentScreen;
+        } else if (client.screen instanceof TeamsLonelyScreen) {
+            TeamsLonelyScreen screen = (TeamsLonelyScreen) client.screen;
             screen.refresh();
         }
     }
@@ -136,8 +136,8 @@ class ClientTeamImpl implements ClientTeam {
         hasPerms = false;
         initialized = false;
         // If in TeamsScreen, go to lonely screen
-        if (client.currentScreen instanceof TeamsScreen) {
-            client.openScreen(new TeamsLonelyScreen(null));
+        if (client.screen instanceof TeamsScreen) {
+            client.setScreen(new TeamsLonelyScreen(null));
         }
     }
 

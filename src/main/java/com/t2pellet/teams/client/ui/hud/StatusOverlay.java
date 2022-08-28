@@ -1,38 +1,42 @@
 package com.t2pellet.teams.client.ui.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.t2pellet.teams.TeamsMod;
 import com.t2pellet.teams.client.core.ClientTeam;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
+import com.t2pellet.teams.config.TeamsConfig;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 
-@Environment(EnvType.CLIENT)
-public class StatusOverlay extends DrawableHelper {
+@OnlyIn(Dist.CLIENT)
+public class StatusOverlay extends AbstractGui {
 
-    private static final Identifier ICONS = new Identifier(TeamsMod.MODID, "textures/gui/hudicons.png");
+    private static final ResourceLocation ICONS = new ResourceLocation(TeamsMod.MODID, "textures/gui/hudicons.png");
 
     public boolean enabled = true;
-    private final MinecraftClient client;
+    private final Minecraft client;
     private int offsetY = 0;
 
     public StatusOverlay() {
-        this.client = MinecraftClient.getInstance();
+        this.client = Minecraft.getInstance();
     }
 
     public void render(MatrixStack matrices) {
         offsetY = 0;
+        RenderSystem.enableBlend();
+
         List<ClientTeam.Teammate> teammates = ClientTeam.INSTANCE.getTeammates();
         int shown = 0;
         for (int i = 0; i < teammates.size() && shown < 4; ++i) {
-            if (Objects.requireNonNull(client.player).getUuid().equals(teammates.get(i).id)) {
+            if (Objects.requireNonNull(client.player).getUUID().equals(teammates.get(i).id)) {
                 continue;
             }
             renderStatus(matrices, teammates.get(i));
@@ -41,35 +45,35 @@ public class StatusOverlay extends DrawableHelper {
     }
 
     private void renderStatus(MatrixStack matrices, ClientTeam.Teammate teammate) {
-        if (!TeamsMod.getConfig().enableStatusHUD || !enabled) return;
+        if (!TeamsConfig.ENABLE_STATUS_HUD.get() || !enabled) return;
 
         // Dont render dead players
         if (teammate.getHealth() <= 0) return;
         
-        int posX = (int) Math.round(client.getWindow().getScaledWidth() * 0.003);
-        int posY = client.getWindow().getScaledHeight() / 4 - 5 + offsetY;
+        int posX = (int) Math.round(client.getWindow().getGuiScaledWidth() * 0.003);
+        int posY = client.getWindow().getGuiScaledHeight() / 4 - 5 + offsetY;
 
         // Health
         String health = String.valueOf(Math.round(teammate.getHealth()));
-        MinecraftClient.getInstance().getTextureManager().bindTexture(ICONS);
-        drawTexture(matrices, posX + 20, posY, 0, 0, 9, 9);
-        drawTextWithShadow(matrices, client.textRenderer, new LiteralText(health), posX + 32, posY, Color.WHITE.getRGB());
+        Minecraft.getInstance().getTextureManager().bind(ICONS);
+        blit(matrices, posX + 20, posY, 0, 0, 9, 9);
+        drawString(matrices, client.font, new StringTextComponent(health), posX + 32, posY, Color.WHITE.getRGB());
 
         // Hunger
         String hunger = String.valueOf(teammate.getHunger());
-        MinecraftClient.getInstance().getTextureManager().bindTexture(ICONS);
-        drawTexture(matrices, posX + 46, posY, 9, 0, 9, 9);
-        drawTextWithShadow(matrices, client.textRenderer, new LiteralText(hunger), posX + 58, posY, Color.WHITE.getRGB());
+        Minecraft.getInstance().getTextureManager().bind(ICONS);
+        blit(matrices, posX + 46, posY, 9, 0, 9, 9);
+        drawString(matrices, client.font, new StringTextComponent(hunger), posX + 58, posY, Color.WHITE.getRGB());
 
         // Draw skin
-        MinecraftClient.getInstance().getTextureManager().bindTexture(teammate.skin);
-        matrices.push();
+        Minecraft.getInstance().getTextureManager().bind(teammate.skin);
+        matrices.pushPose();
         matrices.scale(0.5F, 0.5F, 0.5F);
-        drawTexture(matrices, posX + 4, client.getWindow().getScaledHeight() / 2 - 34 + 2 * offsetY, 32, 32, 32, 32);
-        matrices.pop();
+        blit(matrices, posX + 4, client.getWindow().getGuiScaledHeight() / 2 - 34 + 2 * offsetY, 32, 32, 32, 32);
+        matrices.popPose();
 
         // Draw name
-        drawTextWithShadow(matrices, client.textRenderer, new LiteralText(teammate.name), (int) Math.round(client.getWindow().getScaledWidth() * 0.002) + 20, posY - 15, Color.WHITE.getRGB());
+        drawString(matrices, client.font, new StringTextComponent(teammate.name), (int) Math.round(client.getWindow().getGuiScaledWidth() * 0.002) + 20, posY - 15, Color.WHITE.getRGB());
 
         // Update count & offset
         offsetY += 46;

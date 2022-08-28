@@ -5,14 +5,16 @@ import com.t2pellet.teams.core.IHasTeam;
 import com.t2pellet.teams.core.Team;
 import com.t2pellet.teams.core.TeamDB;
 import com.t2pellet.teams.network.ServerPacket;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class TeamInvitePacket extends ServerPacket {
 
@@ -20,21 +22,21 @@ public class TeamInvitePacket extends ServerPacket {
     private static final String TO_KEY = "toId";
 
     public TeamInvitePacket(UUID from, String to) {
-        tag.putUuid(FROM_KEY, from);
+        tag.putUUID(FROM_KEY, from);
         tag.putString(TO_KEY, to);
     }
 
-    public TeamInvitePacket(MinecraftServer server, PacketByteBuf byteBuf) {
+    public TeamInvitePacket(MinecraftServer server, PacketBuffer byteBuf) {
         super(server, byteBuf);
     }
 
     @Override
-    public void execute() {
-        UUID from = tag.getUuid(FROM_KEY);
-        UUID to = Optional.ofNullable(TeamsMod.getServer().getUserCache().findByName(tag.getString(TO_KEY))).orElseThrow(NoSuchElementException::new).getId();
+    public void execute(Supplier<NetworkEvent.Context> context) {
+        UUID from = tag.getUUID(FROM_KEY);
+        UUID to = Optional.ofNullable(TeamsMod.getServer().getProfileCache().get(tag.getString(TO_KEY))).orElseThrow(NoSuchElementException::new).getId();
 
-        ServerPlayerEntity fromPlayer = TeamsMod.getServer().getPlayerManager().getPlayer(from);
-        ServerPlayerEntity toPlayer = TeamsMod.getServer().getPlayerManager().getPlayer(to);
+        ServerPlayerEntity fromPlayer = TeamsMod.getServer().getPlayerList().getPlayer(from);
+        ServerPlayerEntity toPlayer = TeamsMod.getServer().getPlayerList().getPlayer(to);
 
         Objects.requireNonNull(fromPlayer, "Origin player doesn't exists.");
         Objects.requireNonNull(toPlayer, "Destination player doesn't exists.");
